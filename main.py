@@ -2,6 +2,7 @@ import requests
 import argparse
 import json
 import csv
+import unicodedata
 
 class spotifyApp():
 	def __init__(self):
@@ -30,7 +31,7 @@ class spotifyApp():
 		return
 
 	def getData(self,year, quantify, outputpath):
-		csvfile = open(outputpath, 'w', newline='\n')
+		csvfile = open(outputpath, 'w', newline='\n', encoding="utf-8-sig")#utf-8-sig, utf8
 		writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=self.excelheader)
 		writer.writeheader()
 		for i in range(0, quantify, 50):
@@ -79,7 +80,7 @@ class spotifyApp():
 
 				# write the data to excel
 				output['Year'] = varyear
-				output['Artist'] = varartist.encode('utf-8')
+				output['Artist'] = varartist
 				output['Album'] = varalbum
 				output['Url'] = varurl
 				output['Popularity'] = varpopularity
