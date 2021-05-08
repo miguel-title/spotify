@@ -65,24 +65,41 @@ class spotifyApp():
 				}
 
 				varyear = year
-				varartist = album['artists'][0]['name']
-				varalbum = album['name']
-				varurl = album['external_urls']['spotify']
+				try:
+					varartist = album['artists'][0]['name']
+				except:
+					varartist = ""
 
-				varhref = album['href']
+				try:
+					varalbum = album['name']
+				except:
+					varalbum = ""
 
-				#get Popularity
-				pheaders = {'Origin': 'https://open.spotify.com',
-							'Accept-Encoding': 'gzip, deflate, br',
-							'Accept-Language': 'en',
-							'Authorization': 'Bearer ' + self.accessToken,
-							'Accept': 'application/json',
-							'Referer': 'https://open.spotify.com/search/albums/year^%^3A1980',
-							'Authority': 'api.spotify.com',
-							'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
-				presponse = requests.get(varhref, headers=headers).json()
-				
-				varpopularity = presponse['popularity']
+				try:
+					varurl = album['external_urls']['spotify']
+				except:
+					varurl = ""
+
+				try:
+					varhref = album['href']
+
+					#get Popularity
+					pheaders = {'Origin': 'https://open.spotify.com',
+								'Accept-Encoding': 'gzip, deflate, br',
+								'Accept-Language': 'en',
+								'Authorization': 'Bearer ' + self.accessToken,
+								'Accept': 'application/json',
+								'Referer': 'https://open.spotify.com/search/albums/year^%^3A1980',
+								'Authority': 'api.spotify.com',
+								'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+					presponse = requests.get(varhref, headers=headers).json()
+					
+					try:
+						varpopularity = presponse['popularity']
+					except:
+						varpopularity = 0
+				except:
+					varpopularity = 0
 
 				print("Year:{}, Artist:{}, Album:{}, Url:{}, Popularity:{}".format(varyear, varartist, varalbum, varurl,varpopularity))
 
