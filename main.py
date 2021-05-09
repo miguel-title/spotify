@@ -40,17 +40,39 @@ class spotifyApp():
 		self.accessToken = token['access_token']
 		return
 
-	def getData(self, startyear, endyear, quantify, outputfile):
+	def getData(self, startyear, endyear, quantify, updatepopularity):
 		# csvfile = open(outputpath, 'w', newline='\n')#, encoding="utf-8-sig")#utf-8-sig, utf8
 		# writer = csv.DictWriter(csvfile, delimiter=",", fieldnames=self.excelheader)
 		# writer.writeheader()
-		wb = openpyxl.Workbook() 
-		sheet = wb.active 
-		for i in range(5):
-			sheet.cell(row = 1, column=i + 1).value = self.excelheader[i]
 
-		grow = 2
 		for year in range(int(startyear), int(endyear) + 1, 1):
+
+			outputfile = "output_{}.xlsx".format(year)
+			isFileExist = False
+			if os.path.isfile(outputfile):
+				print ("File exist")
+				isFileExist = True
+			else:
+				print ("File not exist")
+
+			oldalbumurldata = []
+
+			if isFileExist == True:
+				wb = openpyxl.load_workbook(outputfile)
+				sheet = wb.active
+				grow = sheet.max_row + 1
+				for row in range(grow):
+					if row < 2:
+						continue
+					oldalbumurldata.append(sheet.cell(row = row, column = 4).value)
+
+			else:
+				wb = openpyxl.Workbook() 
+				sheet = wb.active 
+				for i in range(5):
+					sheet.cell(row = 1, column=i + 1).value = self.excelheader[i]
+				grow = 2
+
 			for i in range(0, int(quantify), 50):
 				self.get_access_token()
 				print('-------------{}'.format(i))
@@ -83,17 +105,17 @@ class spotifyApp():
 
 					varyear = year
 					try:
-						varartist = album['artists'][0]['name']
+						varartist = album['artists'][0]['name'].encode('utf-8').strip()
 					except:
 						varartist = ""
 
 					try:
-						varalbum = album['name']
+						varalbum = album['name'].encode('utf-8').strip()
 					except:
 						varalbum = ""
 
 					try:
-						varurl = album['external_urls']['spotify']
+						varurl = album['external_urls']['spotify'].encode('utf-8').strip()
 					except:
 						varurl = ""
 
@@ -129,15 +151,28 @@ class spotifyApp():
 
 					#writer.writerow(output)
 
-					sheet.cell(row = grow, column=1).value = output['Year']
-					sheet.cell(row = grow, column=2).value = output['Artist']
-					sheet.cell(row = grow, column=3).value = output['Album']
-					sheet.cell(row = grow, column=4).value = output['Url']
-					sheet.cell(row = grow, column=5).value = output['Popularity']
-					grow += 1
+					if isFileExist == True:
+						if output['Url'].decode('utf-8') in oldalbumurldata:
+							if updatepopularity == 'yes':
+								sheet.cell(row = oldalbumurldata.index(output['Url'].decode('utf-8')) + 2, column=5).value = output['Popularity']
+							continue
+						else:
+							sheet.cell(row = grow, column=1).value = output['Year']
+							sheet.cell(row = grow, column=2).value = output['Artist']
+							sheet.cell(row = grow, column=3).value = output['Album']
+							sheet.cell(row = grow, column=4).value = output['Url']
+							sheet.cell(row = grow, column=5).value = output['Popularity']
+							grow += 1
+					else:
+						sheet.cell(row = grow, column=1).value = output['Year']
+						sheet.cell(row = grow, column=2).value = output['Artist']
+						sheet.cell(row = grow, column=3).value = output['Album']
+						sheet.cell(row = grow, column=4).value = output['Url']
+						sheet.cell(row = grow, column=5).value = output['Popularity']
+						grow += 1
 		#csvfile.close()
 
-		wb.save(outputfile)
+			wb.save(outputfile)
 
 def load_config():
 	defaults = {
@@ -157,7 +192,7 @@ def load_config():
 			if config.has_section("global"):
 				config_items = dict(config.items("global"))
 
-				defaults['output'] = config_items['output']
+				defaults['updatepopularity'] = config_items['updatepopularity']
 				defaults['startyear'] = config_items['startyear']
 				defaults['endyear'] = config_items['endyear']
 				defaults['quantify'] = config_items['quantify']
@@ -177,13 +212,13 @@ def startProcess():
 
 	config_option = load_config()
 
-	out_file = config_option['output']
+	updatepopularity = config_option['updatepopularity']
 	quantify = config_option['quantify']
 	startyear = config_option['startyear']
 	endyear = config_option['endyear']
 
 	app = spotifyApp()
-	app.getData(startyear, endyear, quantify, out_file)
+	app.getData(startyear, endyear, quantify, updatepopularity)
 
 if __name__=="__main__":
 	startProcess()
