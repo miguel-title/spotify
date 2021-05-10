@@ -96,8 +96,8 @@ class spotifyApp():
 								print('https://api.spotify.com/v1/albums/{}'.format(albumid))
 								sheet.cell(row = oldrow, column=5).value = varpopularity
 								oldrow += 1
-								time.sleep(1)
 							except:
+								time.sleep(1)
 								continue
 							break
 
