@@ -14,6 +14,8 @@ if sys.version_info >= (3, 0):
 else:
     import ConfigParser
 
+import time
+
 class spotifyApp():
 	def __init__(self):
 		self.accessToken = ""
@@ -65,6 +67,39 @@ class spotifyApp():
 					if row < 2:
 						continue
 					oldalbumurldata.append(sheet.cell(row = row, column = 4).value)
+
+				if updatepopularity == "yes":
+					print("update the popularity")
+					self.get_access_token()
+					oldrow = 2
+					for oldalbumurl in oldalbumurldata:
+						while True:
+							try:
+								albumid = oldalbumurl.replace('https://open.spotify.com/album/', '')
+								headers = {'Origin': 'https://open.spotify.com',
+									'Accept-Encoding': 'gzip, deflate, br',
+									'Accept-Language': 'en',
+									'Authorization': 'Bearer ' + self.accessToken,
+									'Accept': 'application/json',
+									# 'Referer': 'https://open.spotify.com/search/albums/year^%^3A1980',
+									'Authority': 'api.spotify.com',
+									'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
+
+								presponse = requests.get('https://api.spotify.com/v1/albums/{}'.format(albumid), headers=headers).json()
+
+								try:
+									varpopularity = presponse['popularity']
+								except:
+									varpopularity = 0
+
+								print("------update row : {}".format(oldrow))
+								print('https://api.spotify.com/v1/albums/{}'.format(albumid))
+								sheet.cell(row = oldrow, column=5).value = varpopularity
+								oldrow += 1
+								time.sleep(1)
+							except:
+								continue
+							break
 
 			else:
 				wb = openpyxl.Workbook() 
@@ -122,15 +157,6 @@ class spotifyApp():
 					try:
 						varhref = album['href']
 
-						#get Popularity
-						pheaders = {'Origin': 'https://open.spotify.com',
-									'Accept-Encoding': 'gzip, deflate, br',
-									'Accept-Language': 'en',
-									'Authorization': 'Bearer ' + self.accessToken,
-									'Accept': 'application/json',
-									'Referer': 'https://open.spotify.com/search/albums/year^%^3A1980',
-									'Authority': 'api.spotify.com',
-									'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36'}
 						presponse = requests.get(varhref, headers=headers).json()
 						
 						try:
